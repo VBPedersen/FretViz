@@ -1,51 +1,57 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { useEffect, useRef } from "react";
+import { AlphaTabApi } from "@coderline/alphatab";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+export default function App() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const apiRef = useRef<AlphaTabApi | null>(null);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+    useEffect(() => {
+        if (!containerRef.current) return;
 
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+        const api = new AlphaTabApi(containerRef.current, {
+            core: {
+                file: "/tabs/test-tabs/test1.gpx",
+                fontDirectory: "/alphatab/font/",
+                scriptFile: "/alphatab/alphaTab.worker.mjs",
+            },
+            player: {
+                enablePlayer: true,
+                soundFont: "/soundfonts/sonivox.sf2",
+            },
+        });
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+        apiRef.current = api;
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+        api.renderFinished.on(() => console.log("rendered ok"));
+        api.playerStateChanged.on((e) => console.log("player state:", e.state));
+        api.playerReady.on(() => console.log("player ready"));
+
+        // SoundFont events
+        api.soundFontLoad.on((e) => {
+            console.log(`Loading SoundFont: ${e.loaded} / ${e.total} bytes`);
+        });
+
+        api.soundFontLoaded.on(() => {
+            console.log("SoundFont fully loaded!");
+        });
+
+
+
+        api.tex("\\tempo 120 . 3.3 5.3 | 3.2 5.2 7.2 | 5.2 9.1 7.1 |");
+
+
+        console.log(api.masterVolume);
+
+        return () => {
+            api.destroy();
+            apiRef.current = null;
+        };
+    }, []);
+
+    return (
+        <div>
+            <div ref={containerRef} style={{ width: "100%", minHeight: 400 }} />
+            <button onClick={() => apiRef.current?.playPause()}>Play</button>
+        </div>
+    );
 }
-
-export default App;
