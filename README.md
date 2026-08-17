@@ -3,7 +3,7 @@
 # 🎸 FretViz
 
 
-<img src="app-icon.png" alt="FretViz Logo" />
+<img src="app-icon.png" alt="FretViz Logo" width="250"/>
 
 **An interactive fretboard visualizer that overlays live scale maps on your guitar tabs — watch the notes light up as they play.**
 
