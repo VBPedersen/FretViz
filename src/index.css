@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* Default Theme (Dark) */
+:root,
+[data-theme="dark"] {
+  --fret-line: #737373;
+  --string-line: #a3a3a3;
+  --root-color: #f97316;
+  --scale-color: #3b82f6;
+  --active-color: #ec4899;
+
+  --fret-marker: rgba(182, 182, 182, 0.25);
+  --fret-text: #9ca3af;
+}
+
+/* Cyberpunk Theme */
+[data-theme="cyberpunk"] {
+  --fret-line: #818cf8;
+  --string-line: #c084fc;
+  --root-color: #f43f5e;
+  --scale-color: #22d3ee;
+  --active-color: #a855f7;
+
+  --fret-marker: rgba(56, 189, 248, 0.25);
+  --fret-text: #e879f9;
+}
+
+/* Vintage / Rosewood Theme */
+[data-theme="vintage"] {
+  --fret-line: #d97706;
+  --string-line: #fef3c7;
+  --root-color: #ef4444;
+  --scale-color: #eab308;
+  --active-color: #22c55e;
+
+  --fret-marker: #fef08a;
+  --fret-text: #78350f;
+}
+
