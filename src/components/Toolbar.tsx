@@ -1,5 +1,6 @@
 import type { ScaleDefinition } from "../types";
 import { COMMON_SCALES } from "../lib/scaleEngine";
+import {ThemeSelect} from "./ThemeSelect.tsx";
 
 const NOTE_LETTERS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
@@ -93,6 +94,8 @@ export function Toolbar({
                     </select>
                 </label>
             </div>
+
+            <ThemeSelect />
         </header>
     );
 }
