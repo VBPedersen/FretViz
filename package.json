@@ -17,6 +17,7 @@
     "dexie": "^4.4.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^7.18.2",
     "tailwindcss": "^4.3.3",
     "tonal": "^6.4.3",
     "zustand": "^5.0.15"

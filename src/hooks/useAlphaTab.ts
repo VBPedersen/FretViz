@@ -4,6 +4,7 @@ import type {ActiveNote} from "../types";
 
 interface UseAlphaTabOptions {
     onActiveNotesChange?: (notes: ActiveNote[]) => void;
+    onScoreLoaded?: (score: unknown) => void;
 }
 
 /**
@@ -17,7 +18,7 @@ interface UseAlphaTabOptions {
  */
 export function useAlphaTab(
     containerRef: React.RefObject<HTMLDivElement | null>,
-    { onActiveNotesChange }: UseAlphaTabOptions = {}
+    { onActiveNotesChange, onScoreLoaded }: UseAlphaTabOptions = {}
 ) {
     const apiRef = useRef<AlphaTabApi | null>(null);
     const [isReady, setIsReady] = useState(false);
@@ -45,6 +46,11 @@ export function useAlphaTab(
 
         api.playerStateChanged.on((e) => setIsPlaying(e.state === 1 /* Playing */));
 
+        // Fires when a score is loaded (e.g new song loaded)
+        api.scoreLoaded.on((score) => {
+            onScoreLoaded?.(score);
+        });
+
         // Fires whenever the set of currently-sounding beats changes during playback.
         api.activeBeatsChanged.on((e) => {
             const notes: ActiveNote[] = [];
@@ -61,14 +67,34 @@ export function useAlphaTab(
             api.playNote?.(note as never); // see note below
         });
 
+        // Error listeners
+        api.error.on((e) => console.error("alphaTab error:", e));
+
         return () => {
             api.destroy();
             apiRef.current = null;
         };
     }, []);
 
-    function loadFile(fileOrUrl: File | string) {
-        apiRef.current?.load(fileOrUrl);
+    /**
+     * Loads file or url into the alphatab api
+     * @param fileOrUrl
+     */
+    function loadFile(fileOrUrl: File | string | ArrayBuffer) {
+        if (typeof fileOrUrl === "string" || fileOrUrl instanceof ArrayBuffer) {
+            const ok = apiRef.current?.load(fileOrUrl);
+            console.log("load returned:", ok);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const buffer = reader.result as ArrayBuffer;
+            const ok = apiRef.current?.load(buffer);
+            console.log("load(arrayBuffer) returned:", ok);
+        };
+        reader.onerror = () => console.error("FileReader failed:", reader.error);
+        reader.readAsArrayBuffer(fileOrUrl);
     }
 
     function loadAlphaTex(text: string) {

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { ActiveNote, FretDot } from "../types";
 
 interface FretboardProps {
-    scaleDots: FretDot[];
+    passiveNotes: FretDot[];
     activeNotes: ActiveNote[];
     numFrets?: number;
     numStrings?: number;
@@ -17,8 +17,20 @@ const MARGIN = 40;
 const SINGLE_MARKER_FRETS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_MARKER_FRETS = [12, 24];
 
+// TODO add input and change of numfrets and such, maybe in settings
+// TODO add note characther (e.g. A or A#) to the dots (at least possible for scales), and some content on bottom half page
+
+/**
+ * Fretboard visualizer component, takes scale dots and possibly active notes to visualize current playback
+ * @param passiveNotes - all notes to show as dots on fretboard currently
+ * @param activeNotes - current active notes to highlight based on current playback
+ * @param numFrets - number of frets to show
+ * @param numStrings - number of strings to show
+ * @param onFretClick - callback: what to do when clicking a note on fret
+ * @constructor
+ */
 export function Fretboard({
-                              scaleDots,
+                              passiveNotes,
                               activeNotes,
                               numFrets = 21,
                               numStrings = 6,
@@ -34,9 +46,9 @@ export function Fretboard({
 
     const dotByKey = useMemo(() => {
         const map = new Map<string, FretDot>();
-        for (const dot of scaleDots) map.set(`${dot.string}-${dot.fret}`, dot);
+        for (const dot of passiveNotes) map.set(`${dot.string}-${dot.fret}`, dot);
         return map;
-    }, [scaleDots]);
+    }, [passiveNotes]);
 
     function x(fret: number) {
         return fret === 0 ? MARGIN / 2 : MARGIN + (fret - 0.5) * FRET_WIDTH;

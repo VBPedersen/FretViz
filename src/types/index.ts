@@ -31,7 +31,7 @@ export interface TabEntry {
     updatedAt: number;
     // Raw content: either binary (base64, for .gp*) or text (alphaTex)
     format: "gp" | "alphatex";
-    content: string; // base64 for gp files, plain text for alphaTex
+    content: ArrayBuffer | string; // ArrayBuffer for gp files, string for alphaTex
     defaultScale?: ScaleDefinition;
     tempoOverride?: number;
 }

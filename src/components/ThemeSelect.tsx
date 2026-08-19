@@ -1,5 +1,10 @@
 import { useTheme, Theme } from "../context/ThemeContext";
 
+/**
+ * simple Theme selector with hardcoded values for now
+ * TODO make cooler
+ * @constructor
+ */
 export function ThemeSelect() {
     const { theme, setTheme } = useTheme();
 

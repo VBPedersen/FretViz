@@ -28,7 +28,7 @@ export function buildScaleMap(
 
     // tuning[0] = low E = string 6 in our display convention (1 = high E)
     tuning.forEach((openNote, tuningIndex) => {
-        const stringNumber = tuning.length - tuningIndex; // 6..1
+        const stringNumber = tuningIndex + 1; // 6..1
         const openMidi = Note.midi(openNote);
         if (openMidi == null) return;
 
