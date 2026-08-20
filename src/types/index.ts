@@ -16,9 +16,23 @@ export interface ScaleDefinition {
     scaleName: string; // tonal.js scale name, e.g. "minor pentatonic"
 }
 
+/**
+ * A note currently sounding in alphaTab.
+ *
+ * `bendSemitones` is the sampled bend curve at the current playback tick.
+ * `vibratoOffsetSemitones` is the instantaneous +/- vibrato displacement.
+ * `pitchOffsetSemitones` is the value the visualizer should actually render.
+ *
+ * The latter two are deliberately separate so the UI can style/inspect
+ * bends and vibratos independently without re-parsing alphaTab data.
+ */
 export interface ActiveNote {
     string: number;
     fret: number;
+    bendSemitones?: number; // e.g. 0.5 for quarter bend, 2 for full
+    vibrato?: boolean;
+    vibratoOffsetSemitones?: number;
+    pitchOffsetSemitones?: number;
 }
 
 // A saved item in the user's library
