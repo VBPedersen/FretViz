@@ -42,3 +42,14 @@ export function extractSongNotes(score: unknown): FretDot[] {
 
     return Array.from(seen.values());
 }
+
+/**
+ * Returns the amount of frets to show based on the furthest fret played in dot array
+ * @param dots - FretDot array of dots to use for calculating highest fret played
+ */
+export function getFretRange(dots: FretDot[]): number {
+    const maxFret = Math.max(0, ...dots.map((d) => d.fret));
+    if (maxFret <= 12) return 15;
+    if (maxFret <= 17) return maxFret + 1;
+    return maxFret;
+}

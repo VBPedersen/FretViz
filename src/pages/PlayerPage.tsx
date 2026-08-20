@@ -1,8 +1,8 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useAlphaTab } from "../hooks/useAlphaTab";
 import { Fretboard } from "../components/Fretboard";
 import type {ActiveNote, FretDot, TabEntry} from "../types";
-import {extractSongNotes} from "../lib/songNotes.ts";
+import {extractSongNotes, getFretRange} from "../lib/songNotes.ts";
 import {getTab} from "../lib/db.ts";
 import { useParams } from "react-router-dom";
 import {TransportControls} from "../components/TransportControls.tsx";
@@ -17,6 +17,8 @@ export function PlayerPage() {
     const [activeNotes, setActiveNotes] = useState<ActiveNote[]>([]);
     const [songNotes, setSongNotes] = useState<FretDot[]>([]);
     const [song, setSong] = useState<TabEntry | null>(null);
+
+    const numFrets = useMemo(() => getFretRange(songNotes), [songNotes]);
 
     const onScoreLoaded = useCallback((score: unknown) => {
         setSongNotes(extractSongNotes(score));
@@ -54,7 +56,7 @@ export function PlayerPage() {
 
             <main className="flex flex-1 flex-col gap-4 overflow-auto p-4">
                 <section className="rounded-lg border border-neutral-800 bg-neutral-950 p-4">
-                    <Fretboard passiveNotes={songNotes} activeNotes={activeNotes} />
+                    <Fretboard passiveNotes={songNotes} activeNotes={activeNotes} numFrets={numFrets}/>
                 </section>
 
                 <section className="flex-1 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
