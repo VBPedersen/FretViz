@@ -2,7 +2,8 @@ import {memo} from "react";
 import type { ActiveNote, FretDot } from "../types";
 
 interface FretboardProps {
-    passiveNotes: FretDot[];
+    passiveNotes: FretDot[]; // current bar's notes
+    upcomingNotes?: FretDot[]; // next bar, rendered ghosted
     activeNotes: ActiveNote[];
     numFrets?: number;
     numStrings?: number;
@@ -40,6 +41,7 @@ export const Fretboard = memo(function Fretboard({
                                                      numFrets = 21,
                                                      numStrings = 6,
                                                      onFretClick,
+                                                     upcomingNotes,
                                                  }: FretboardProps) {
     const width = MARGIN * 2 + numFrets * FRET_WIDTH;
     const height = MARGIN * 2 + (numStrings - 1) * STRING_HEIGHT;
@@ -67,6 +69,14 @@ export const Fretboard = memo(function Fretboard({
                 numStrings={numStrings}
                 onFretClick={onFretClick}
             />
+
+            {upcomingNotes && upcomingNotes.length > 0 && (
+                <UpcomingNotesLayer
+                    upcomingNotes={upcomingNotes}
+                    numStrings={numStrings}
+                    onFretClick={onFretClick}
+                />
+            )}
 
             <ActiveNotesLayer
                 activeNotes={activeNotes}
@@ -227,6 +237,55 @@ const PassiveNotesLayer = memo(function PassiveNotesLayer({
     );
 });
 
+
+interface UpcomingNotesLayerProps {
+    upcomingNotes: FretDot[];
+    numStrings: number;
+    onFretClick?: (string: number, fret: number) => void;
+}
+
+const UpcomingNotesLayer = memo(function UpcomingNotesLayer({
+                                                              upcomingNotes,
+                                                              numStrings,
+                                                              onFretClick,
+                                                          }: UpcomingNotesLayerProps) {
+    // lookup/render loop. The fretboard itself remains static SVG.
+    return (
+        <g aria-label="Upcoming notes" opacity={0.28}>
+            {upcomingNotes.map((dot) => {
+                const key = noteKey(dot.string, dot.fret);
+
+                return (
+                    <g
+                        key={key}
+                        onClick={() => onFretClick?.(dot.string, dot.fret)}
+                        style={{ cursor: onFretClick ? "pointer" : "default" }}
+                    >
+                        <circle
+                            cx={fretXPosition(dot.fret)}
+                            cy={stringY(dot.string, numStrings)}
+                            r={12}
+                            fill="transparent"
+                        />
+                        <circle
+                            cx={fretXPosition(dot.fret)}
+                            cy={stringY(dot.string, numStrings)}
+                            r={8}
+                            fill="var(--upcoming-color)"
+                            stroke={
+                                dot.role === "root"
+                                    ? "var(--root-color)"
+                                    : "var(--scale-color)"
+                            }
+                            strokeWidth={1.5}
+                        />
+                    </g>
+                );
+            })}
+        </g>
+    );
+});
+
 interface ActiveNotesLayerProps {
     activeNotes: ActiveNote[];
     numStrings: number;
@@ -300,6 +359,7 @@ const ActiveNotesLayer = memo(function ActiveNotesLayer({
                             stroke="var(--active-color)"
                             strokeWidth={2}
                             opacity={hasVibrato ? 0.32 : 0.2}
+                            style={{ animation: "pulse-ring 0.6s ease-out infinite" }}
                         />
 
                         {/* Active note */}

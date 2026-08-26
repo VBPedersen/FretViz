@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {AlphaTabApi, PlayerMode, type Settings} from "@coderline/alphatab";
-import type {ActiveNote} from "../types";
+import type {ActiveNote, BarNote} from "../types";
 import {AlphaTabBendPoint, NormalizedBendPoint, parseAlphaTabBends, sampleBendSemitones} from "../lib/bendUtils.ts";
 
 /**
@@ -18,6 +18,7 @@ interface CachedNote {
 
 interface UseAlphaTabOptions {
     onActiveNotesChange?: (notes: ActiveNote[]) => void;
+    onBarChange?: (notes: BarNote[], nextBarNotes: BarNote[]) => void;
     onScoreLoaded?: (score: unknown) => void;
 }
 
@@ -40,17 +41,28 @@ interface UseAlphaTabOptions {
  */
 export function useAlphaTab(
     containerRef: React.RefObject<HTMLDivElement | null>,
-    { onActiveNotesChange, onScoreLoaded }: UseAlphaTabOptions = {}
+    { onActiveNotesChange, onScoreLoaded, onBarChange}: UseAlphaTabOptions = {}
 ) {
     const apiRef = useRef<AlphaTabApi | null>(null);
     const cachedNotesRef = useRef<CachedNote[]>([]);
+    const wasEmptyRef = useRef(true); // used to clear cached notes
+    const selectedTrackIndexRef = useRef<number>(0); // selected track index
+
     // Refs used for callbacks to not interrupt rAF
     const onActiveNotesChangeRef = useRef(onActiveNotesChange);
     const onScoreLoadedRef = useRef(onScoreLoaded);
 
+    // Current bar tracking for upcoming note viz
+    const currentBarIndexRef = useRef<number>(-1);
+    const onBarChangeRef = useRef(onBarChange);
+
     const [isReady, setIsReady] = useState(false);
     const [tempo, setTempo] = useState(120);
     const [isPlaying, setIsPlaying] = useState(false);
+
+    useEffect(() => {
+        onBarChangeRef.current = onBarChange;
+    }, [onBarChange]);
 
     useEffect(() => {
         onActiveNotesChangeRef.current = onActiveNotesChange;
@@ -93,6 +105,7 @@ export function useAlphaTab(
         api.activeBeatsChanged.on((e) => {
             const notes: CachedNote[] = [];
             for (const beat of e.activeBeats) {
+                if (beat.voice.bar.staff.track.index !== selectedTrackIndexRef.current) continue;
                 for (const note of beat.notes) {
                     const bendPoints = note.bendPoints
                         ? parseAlphaTabBends(toSimpleBendPoints(note.bendPoints))
@@ -109,6 +122,26 @@ export function useAlphaTab(
                 }
             }
             cachedNotesRef.current = notes;
+
+            // Bar index is shared across tracks (bars align on the same timeline),
+            // so any active beat tells us "which bar we're in" even if the selected
+            // track itself is resting right now.
+            const barIndex = e.activeBeats[0]?.voice?.bar?.index;
+            if (barIndex == null || barIndex === currentBarIndexRef.current) return;
+            currentBarIndexRef.current = barIndex;
+
+            // Always fetch the bar from the SELECTED track's own staff, never from
+            // whichever beat happened to trigger this event.
+            const track = api.score?.tracks[selectedTrackIndexRef.current];
+            const staff = track?.staves[0];
+            const bar = staff?.bars[barIndex];
+            const nextBar = staff?.bars[barIndex + 1];
+
+            const currentBarNotes = bar ? collectBarNotes(bar) : [];
+            const nextBarNotes = nextBar ? collectBarNotes(nextBar) : [];
+
+            onBarChangeRef.current?.(currentBarNotes, nextBarNotes);
+
         });
 
         // Click-to-hear: user clicks a note in the tab/notation view.
@@ -135,6 +168,7 @@ export function useAlphaTab(
                 const currentTick = api.tickPosition;
                 const cachedNotes = cachedNotesRef.current;
                 if (cachedNotes.length > 0) {
+                    wasEmptyRef.current = false;
                     const sampled: ActiveNote[] = new Array(cachedNotes.length);
 
                     for (let i = 0; i < cachedNotes.length; i++) {
@@ -167,6 +201,9 @@ export function useAlphaTab(
                         };
                     }
                     onActiveNotesChangeRef.current?.(sampled);
+                } else if (!wasEmptyRef.current) {
+                    wasEmptyRef.current = true;
+                    onActiveNotesChangeRef.current?.([]);
                 }
             }
             raf = requestAnimationFrame(tick);
@@ -177,6 +214,25 @@ export function useAlphaTab(
     }, []);
 
 
+    /**
+     * Collects bar notes to array of BarNote
+     * @param bar - current bar
+     */
+    function collectBarNotes(bar: any): BarNote[] {
+        const notes: BarNote[] = [];
+        bar.voices.forEach((voice: any) => {
+            voice.beats.forEach((beat: any, beatIndex: number) => {
+                if (beat.isRest) return; // rests have no notes but can leave stale entries
+                beat.notes.forEach((note: any) => {
+                    if (beat.voice.bar.staff.track.index !== selectedTrackIndexRef.current) return;
+                    if (note.isDead) return;       // muted/percussive x notes
+                    if (note.isTieDestination) return; // sustain of a previous note, not a new attack
+                    notes.push({ string: note.string, fret: note.fret, role: "scale", beatIndex });
+                });
+            });
+        });
+        return notes;
+    }
 
     /**
      * Loads file or url into the alphatab api
@@ -215,6 +271,17 @@ export function useAlphaTab(
         if (apiRef.current) apiRef.current.playbackSpeed = speed;
     }
 
+    function setActiveTrackIndex(index: number) {
+        selectedTrackIndexRef.current = index;
+        currentBarIndexRef.current = -1; // force a re-fetch of bar notes for the new track
+
+        // alphaTab should only render/consider this track
+        const api = apiRef.current;
+        if (api?.score) {
+            api.renderTracks([api.score.tracks[index]]);
+        }
+    }
+
     return {
         api: apiRef,
         isReady,
@@ -226,6 +293,7 @@ export function useAlphaTab(
         play,
         stop,
         setPlaybackSpeed,
+        setActiveTrackIndex
     };
 }
 

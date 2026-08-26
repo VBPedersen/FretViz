@@ -8,6 +8,7 @@
   --root-color: #f97316;
   --scale-color: #3b82f6;
   --active-color: #ec4899;
+  --upcoming-color: #ff85c5;
 
   --fret-marker: rgba(182, 182, 182, 0.25);
   --fret-text: #9ca3af;
@@ -20,6 +21,7 @@
   --root-color: #f43f5e;
   --scale-color: #22d3ee;
   --active-color: #a855f7;
+  --upcoming-color: rgba(168, 85, 247, 0.4);
 
   --fret-marker: rgba(56, 189, 248, 0.25);
   --fret-text: #e879f9;
@@ -32,6 +34,7 @@
   --root-color: #ef4444;
   --scale-color: #eab308;
   --active-color: #22c55e;
+  --upcoming-color: rgba(34, 197, 94, 0.4);
 
   --fret-marker: #fef08a;
   --fret-text: #78350f;
@@ -40,4 +43,9 @@
 /* smooth transitions when changing themes */
 circle, line, text {
   transition: fill 0.15s ease, stroke 0.15s ease;
+}
+
+@keyframes pulse-ring {
+  0%   { r: 12; opacity: 0.55; }
+  100% { r: 15; opacity: 0; }
 }

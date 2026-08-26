@@ -2,13 +2,17 @@
 // alphaTab uses string numbers where 1 = highest pitch string, matching this convention.
 export const STANDARD_TUNING = ["E2", "A2", "D3", "G3", "B3", "E4"] as const;
 
-export type NoteRole = "root" | "scale" | "active" | "none";
+export type NoteRole = "root" | "scale" | "active" | "upcoming" | "none";
 
 export interface FretDot {
     string: number; // 1-6
     fret: number; // 0-24
     role: NoteRole;
     noteName?: string; // e.g. "A4"
+}
+
+export interface BarNote extends FretDot {
+    beatIndex: number; // position within the bar, used to order direction lines
 }
 
 export interface ScaleDefinition {
