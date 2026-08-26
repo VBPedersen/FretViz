@@ -116,9 +116,7 @@ Output lands in `src-tauri/target/release/bundle/`.
 - [ ] alphaTex-based in-app tab editor
 - [ ] ASCII tab paste → alphaTex conversion
 - [ ] Loop regions + tempo control UI
-- [ ] Web deployment (Cloudflare Pages)
-- [ ] Optional cloud sync across devices (Supabase)
-
+- [ ] Possible Web deployment
 ---
 
 ## License
