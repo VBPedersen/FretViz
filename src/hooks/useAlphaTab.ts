@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {AlphaTabApi, PlayerMode, type Settings} from "@coderline/alphatab";
+import {AlphaTabApi, PlayerMode, Settings} from "@coderline/alphatab";
 import type {ActiveNote, BarNote} from "../types";
 import {AlphaTabBendPoint, NormalizedBendPoint, parseAlphaTabBends, sampleBendSemitones} from "../lib/bendUtils.ts";
 
@@ -75,15 +75,21 @@ export function useAlphaTab(
     useEffect(() => {
         if (!containerRef.current) return;
 
-        const settings = {
+        // create default settings
+        const settings = new Settings();
+        // Overwrite partial settings
+        settings.fillFromJson({
             core: { engine: "svg" },
+            display: {
+                resources: {mainGlyphColor: "#e5e5e5", secondaryGlyphColor: "#a3a3a3", scoreInfoColor: "#e5e5e5"} // TODO integrate with theme system
+            },
             player: {
                 playerMode: PlayerMode.EnabledAutomatic,
                 enableCursor: true,
                 enableUserInteraction: true, // needed for click-to-hear notes
                 soundFont: "/soundfonts/sonivox.sf2",
             },
-        } as Settings;
+        });
 
         const api = new AlphaTabApi(containerRef.current, settings);
         apiRef.current = api;
