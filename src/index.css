@@ -49,3 +49,8 @@ circle, line, text {
   0%   { r: 12; opacity: 0.55; }
   100% { r: 15; opacity: 0; }
 }
+
+/* alphatab cursor styling  */
+.at-cursor-bar { background: rgba(236, 72, 153, 0.15); } /* current bar highlight — item 3, free with this */
+.at-cursor-beat { background: var(--active-color); width: 2px; }
+.at-highlight * { fill: var(--active-color) !important; stroke: var(--active-color) !important; }

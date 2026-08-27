@@ -18,7 +18,7 @@ interface CachedNote {
 
 interface UseAlphaTabOptions {
     onActiveNotesChange?: (notes: ActiveNote[]) => void;
-    onBarChange?: (notes: BarNote[], nextBarNotes: BarNote[]) => void;
+    onBarChange?: (barIndex: number, currentBarNotes: BarNote[], nextBarNotes: BarNote[]) => void;
     onScoreLoaded?: (score: unknown) => void;
 }
 
@@ -146,8 +146,7 @@ export function useAlphaTab(
             const currentBarNotes = bar ? collectBarNotes(bar) : [];
             const nextBarNotes = nextBar ? collectBarNotes(nextBar) : [];
 
-            onBarChangeRef.current?.(currentBarNotes, nextBarNotes);
-
+            onBarChangeRef.current?.(barIndex, currentBarNotes, nextBarNotes);
         });
 
         // Click-to-hear: user clicks a note in the tab/notation view.
@@ -261,22 +260,43 @@ export function useAlphaTab(
         reader.readAsArrayBuffer(fileOrUrl);
     }
 
+    /**
+     * Renders music notation dynamically from an AlphaTex formatted string.
+     *
+     * @param text - The raw AlphaTex markup representing the score notation.
+     */
     function loadAlphaTex(text: string) {
         apiRef.current?.tex(text);
     }
 
+    /**
+     * Toggles audio playback between playing and paused states.
+     */
     function play() {
         apiRef.current?.playPause();
     }
 
+    /**
+     * Stops playback completely and resets the cursor to the start of the score.
+     */
     function stop() {
         apiRef.current?.stop();
     }
 
+    /**
+     * Adjusts the playback speed multiplier in AlphaTab (e.g., 1.0 for normal, 0.5 for half speed).
+     *
+     * @param speed - The playback speed ratio.
+     */
     function setPlaybackSpeed(speed: number) {
         if (apiRef.current) apiRef.current.playbackSpeed = speed;
     }
 
+    /**
+     * Switches the actively selected track and re-renders the notation display for that single track.
+     *
+     * @param index - The zero-based index of the target track in the score.
+     */
     function setActiveTrackIndex(index: number) {
         selectedTrackIndexRef.current = index;
         currentBarIndexRef.current = -1; // force a re-fetch of bar notes for the new track
@@ -286,6 +306,75 @@ export function useAlphaTab(
         if (api?.score) {
             api.renderTracks([api.score.tracks[index]]);
         }
+    }
+
+    /**
+     * Mutes or unmutes audio output for a specific track.
+     *
+     * @param index - The zero-based index of the target track.
+     * @param muted - `true` to silence the track, `false` to restore sound.
+     */
+    function setTrackMute(index: number, muted: boolean) {
+        const track = apiRef.current?.score?.tracks[index];
+        if (track) apiRef.current?.changeTrackMute([track], muted);
+    }
+
+    /**
+     * Solos or unsolos a specific track during playback.
+     *
+     * @param index - The zero-based index of the target track.
+     * @param solo - `true` to isolate this track's audio output, `false` to clear solo status.
+     */
+    function setTrackSolo(index: number, solo: boolean) {
+        const track = apiRef.current?.score?.tracks[index];
+        if (track) apiRef.current?.changeTrackSolo([track], solo);
+    }
+
+    /**
+     * Adjusts the volume output level for a specific track.
+     *
+     * @param index - The zero-based index of the target track.
+     * @param volume - Volume level multiplier (typically between 0.0 and 1.0).
+     */
+    function setTrackVolume(index: number, volume: number) {
+        const track = apiRef.current?.score?.tracks[index];
+        if (track) apiRef.current?.changeTrackVolume([track], volume);
+    }
+
+    /**
+     * Sets a looping playback range based on zero-indexed bar (measure) indices.
+     *
+     * @param startBarIndex - The index of the bar where looping should begin.
+     * @param endBarIndex - The index of the bar where looping should end (inclusive).
+     */
+    function setLoopRange(startBarIndex: number, endBarIndex: number) {
+        const api = apiRef.current;
+        // Guard against uninitialized API or unloaded score data
+        if (!api?.score) return;
+        // Retrieve the active track and its primary staff to extract bar timing details
+        const track = api.score.tracks[selectedTrackIndexRef.current];
+        const staff = track.staves[0];
+
+        // Calculate the starting tick position of the first measure (defaults to 0 if invalid)
+        const startTick = staff.bars[startBarIndex]?.masterBar.start ?? 0;
+        // Calculate the ending tick position by adding measure duration to the measure's start tick
+        const endBar = staff.bars[endBarIndex];
+        const endTick = endBar ? endBar.masterBar.start + endBar.masterBar.calculateDuration() : undefined;
+
+        // Apply tick range to AlphaTab and enable looping
+        api.playbackRange = { startTick, endTick: endTick ?? startTick };
+        api.isLooping = true;
+    }
+
+    /**
+     * Clears any active looping range and restores full score playback.
+     */
+    function clearLoop() {
+        const api = apiRef.current;
+        if (!api) return;
+        // Reset playback range and disable looping mode
+        api.playbackRange = null;
+        api.isLooping = false;
     }
 
     return {
@@ -299,7 +388,12 @@ export function useAlphaTab(
         play,
         stop,
         setPlaybackSpeed,
-        setActiveTrackIndex
+        setActiveTrackIndex,
+        setTrackMute,
+        setTrackSolo,
+        setTrackVolume,
+        setLoopRange,
+        clearLoop,
     };
 }
 
