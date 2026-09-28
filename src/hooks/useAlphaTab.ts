@@ -79,7 +79,10 @@ export function useAlphaTab(
         const settings = new Settings();
         // Overwrite partial settings
         settings.fillFromJson({
-            core: { engine: "svg" },
+            core: {
+                engine: "svg",
+                fontDirectory: "/font/",
+            },
             display: {
                 resources: {mainGlyphColor: "#e5e5e5", secondaryGlyphColor: "#a3a3a3", scoreInfoColor: "#e5e5e5"} // TODO integrate with theme system
             },

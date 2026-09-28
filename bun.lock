@@ -18,6 +18,7 @@
         "zustand": "^5.0.15",
       },
       "devDependencies": {
+        "@coderline/alphatab-vite": "^1.8.4",
         "@tauri-apps/cli": "^2",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
@@ -67,6 +68,8 @@
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
     "@coderline/alphatab": ["@coderline/alphatab@1.8.4", "", {}, "sha512-VN5rfTZZWgA63Ny1aDKCp02k3Qm9CHhg4Q9AnK0kHm7G+fNDNZo36TeToPDFoJ6VpB9+AHcCrHwHFUP1tKqdsw=="],
+
+    "@coderline/alphatab-vite": ["@coderline/alphatab-vite@1.8.4", "", { "dependencies": { "magic-string": "^0.30.21" }, "peerDependencies": { "vite": "^7 || ^8" } }, "sha512-kUABf0FNMXZrr7TvHLUBTqpQQLrHXs9bIrsQMHHZXE0uIlH70yNSgbiuvm0SK0L5D07On5RD5InteJZIX9dacg=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.28.2", "", { "os": "aix", "cpu": "ppc64" }, "sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ=="],
 
