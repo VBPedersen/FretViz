@@ -1,10 +1,12 @@
 import {memo} from "react";
 import type { ActiveNote, FretDot } from "../types";
+import {ColoredPosition} from "../lib/scaleEngine.ts";
 
 interface FretboardProps {
     passiveNotes: FretDot[]; // current bar's notes
     upcomingNotes?: FretDot[]; // next bar, rendered ghosted
     activeNotes: ActiveNote[];
+    allPositions?: ColoredPosition[];
     positionRange?: { minFret: number; maxFret: number };
     numFrets?: number;
     numStrings?: number;
@@ -39,6 +41,7 @@ const DOUBLE_MARKER_FRETS = [12, 24];
 export const Fretboard = memo(function Fretboard({
                                                      passiveNotes,
                                                      activeNotes,
+                                                     allPositions,
                                                      positionRange,
                                                      numFrets = 21,
                                                      numStrings = 6,
@@ -78,11 +81,11 @@ export const Fretboard = memo(function Fretboard({
                 centerY={centerY}
             />
 
-            <PassiveNotesLayer
-                passiveNotes={passiveNotes}
-                numStrings={numStrings}
-                onFretClick={onFretClick}
-            />
+            {allPositions ? (
+                <MultiPositionLayer groups={allPositions} numStrings={numStrings} onFretClick={onFretClick} />
+            ) : (
+                <PassiveNotesLayer passiveNotes={passiveNotes} numStrings={numStrings} onFretClick={onFretClick} />
+            )}
 
             {upcomingNotes && upcomingNotes.length > 0 && (
                 <UpcomingNotesLayer
@@ -414,4 +417,82 @@ function noteKey(stringNum: number, fret: number): string {
 
 function clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
+}
+
+
+interface MultiPositionLayerProps {
+    groups: ColoredPosition[];
+    numStrings: number;
+    onFretClick?: (string: number, fret: number) => void;
+}
+
+
+const MultiPositionLayer = memo(function MultiPositionLayer({
+                                                                groups, numStrings, onFretClick,
+                                                            }: MultiPositionLayerProps) {
+    const merged = new Map<string, { string: number; fret: number; colors: string[]; isRoot: boolean }>();
+
+    groups.forEach((group) => {
+        group.dots.forEach((dot) => {
+            const key = `${dot.string}-${dot.fret}`;
+            const existing = merged.get(key);
+            if (existing) {
+                existing.colors.push(group.color);
+                existing.isRoot = existing.isRoot || dot.role === "root";
+            } else {
+                merged.set(key, { string: dot.string, fret: dot.fret, colors: [group.color], isRoot: dot.role === "root" });
+            }
+        });
+    });
+
+    return (
+        <g aria-label="All positions">
+            {Array.from(merged.values()).map((spot) => {
+                const cx = fretXPosition(spot.fret);
+                const cy = stringY(spot.string, numStrings);
+                const key = noteKey(spot.string, spot.fret);
+                const r = spot.isRoot ? 9 : 7;
+
+                return (
+                    <g
+                        key={key}
+                        onClick={() => onFretClick?.(spot.string, spot.fret)}
+                        style={{ cursor: onFretClick ? "pointer" : "default" }}
+                    >
+                        <circle cx={cx} cy={cy} r={12} fill="transparent" />
+
+                        {spot.colors.length === 1 ? (
+                            <circle cx={cx} cy={cy} r={r} fill={spot.colors[0]} />
+                        ) : (
+                            <PieDot cx={cx} cy={cy} r={r} colors={spot.colors} />
+                        )}
+
+                        {/* root notes get a ring on top regardless of color, so root is always identifiable */}
+                        {spot.isRoot && (
+                            <circle cx={cx} cy={cy} r={r + 2.5} fill="none" stroke="white" strokeWidth={1.5} opacity={0.8} />
+                        )}
+                    </g>
+                );
+            })}
+        </g>
+    );
+});
+
+function PieDot({ cx, cy, r, colors }: { cx: number; cy: number; r: number; colors: string[] }) {
+    const slice = 360 / colors.length;
+    return (
+        <>
+            {colors.map((color, i) => (
+                <path key={i} d={describeWedge(cx, cy, r, i * slice, (i + 1) * slice)} fill={color} />
+            ))}
+        </>
+    );
+}
+
+function describeWedge(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
+    const toRad = (deg: number) => ((deg - 90) * Math.PI) / 180;
+    const start = { x: cx + r * Math.cos(toRad(startAngle)), y: cy + r * Math.sin(toRad(startAngle)) };
+    const end = { x: cx + r * Math.cos(toRad(endAngle)), y: cy + r * Math.sin(toRad(endAngle)) };
+    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
 }

@@ -266,3 +266,26 @@ export function groupDotsByPosition(
 
     return kept;
 }
+
+export const POSITION_COLORS = [
+    "#e6194b","#2f9e44","#f59f00", "#1c7ed6",
+    "#f76707", "#ae3ec9", "#0c8599", "#d6336c",
+    "#74b816", "#f783ac", "#0ca678", "#7048e8",
+    "#ffd166", "#ff70a6", "#ff1493", "#1e90ff",
+    "#00e5ff", "#a0a0a0", "#212529", "#d4e157",
+    "#b388ff", "#e040fb",
+];
+
+export interface ColoredPosition {
+    color: string;
+    dots: FretDot[];
+    label: string; // "Position 1", useful for a legend
+}
+
+export function colorizePositions(positions: FretDot[][]): ColoredPosition[] {
+    return positions.map((dots, i) => ({
+        color: POSITION_COLORS[i % POSITION_COLORS.length],
+        dots,
+        label: `Position ${i + 1}`,
+    }));
+}

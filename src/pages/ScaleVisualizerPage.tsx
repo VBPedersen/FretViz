@@ -4,7 +4,7 @@ import {Fretboard} from "../components/Fretboard.tsx";
 import {
     buildChordMap,
     buildScaleMap,
-    buildTriadShapes,
+    buildTriadShapes, colorizePositions,
     COMMON_CHORDS,
     COMMON_TRIADS,
     groupDotsByPosition
@@ -29,6 +29,7 @@ export function ScaleVisualizerPage() {
     const [chordSymbol, setChordSymbol] = useState("M");
     const [numFrets, setNumFrets] = useState(15);
     const [positionIndex, setPositionIndex] = useState(0);
+    const [showAll, setShowAll] = useState(false);
 
     const allDots = useMemo(() => {
         if (mode === "scale") return buildScaleMap(scale);
@@ -50,6 +51,11 @@ export function ScaleVisualizerPage() {
 
     const dots = positions[positionIndex] ?? [];
 
+
+    const coloredPositions = useMemo(
+        () => (showAll ? colorizePositions(positions) : []),
+        [showAll, positions]
+    );
 
     const positionRange = useMemo(() => {
         if (dots.length === 0) return undefined;
@@ -83,19 +89,44 @@ export function ScaleVisualizerPage() {
                 <FretboardOptionsPicker numFrets={numFrets} onNumFretChange={setNumFrets} />
 
                 {mode !== "scale" && (
-                    <PositionPicker
-                        positionIndex={positionIndex}
-                        totalPositions={positions.length}
-                        onChange={setPositionIndex}
-                    />
+                    <>
+                        <button
+                            onClick={() => setShowAll((v) => !v)}
+                            className={`px-3 py-1 text-sm rounded ${showAll ? "bg-pink-600 text-white" : "bg-neutral-800 text-neutral-400"}`}
+                        >
+                            {showAll ? "Showing All" : "Show All"}
+                        </button>
+                        {!showAll && (
+                            <PositionPicker positionIndex={positionIndex} totalPositions={positions.length} onChange={setPositionIndex} />
+                        )}
+                    </>
                 )}
             </header>
             <section className="rounded-lg border border-neutral-800 bg-neutral-950 p-4">
                 {mode == "scale" ?
                     <Fretboard passiveNotes={dots} activeNotes={[]} numFrets={numFrets} />
-                     :
-                <Fretboard passiveNotes={dots} activeNotes={[]} numFrets={numFrets} positionRange={positionRange} />
+                    :
+                    // <Fretboard passiveNotes={dots} activeNotes={[]} numFrets={numFrets} positionRange={positionRange} />
+
+                    <Fretboard
+                        passiveNotes={dots}
+                        allPositions={showAll ? coloredPositions : undefined}
+                        activeNotes={[]}
+                        numFrets={numFrets}
+                        positionRange={positionRange}
+                    />
                 }
+
+                {showAll && (
+                    <div className="flex gap-3 flex-wrap text-xs text-neutral-400">
+                        {coloredPositions.map((g) => (
+                            <span key={g.label} className="flex items-center gap-1">
+                                <span className="w-3 h-3 rounded-full inline-block" style={{ background: g.color }} />
+                                {g.label}
+                            </span>
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     );
