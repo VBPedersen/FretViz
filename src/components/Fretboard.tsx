@@ -5,6 +5,7 @@ interface FretboardProps {
     passiveNotes: FretDot[]; // current bar's notes
     upcomingNotes?: FretDot[]; // next bar, rendered ghosted
     activeNotes: ActiveNote[];
+    positionRange?: { minFret: number; maxFret: number };
     numFrets?: number;
     numStrings?: number;
     onFretClick?: (string: number, fret: number) => void;
@@ -38,6 +39,7 @@ const DOUBLE_MARKER_FRETS = [12, 24];
 export const Fretboard = memo(function Fretboard({
                                                      passiveNotes,
                                                      activeNotes,
+                                                     positionRange,
                                                      numFrets = 21,
                                                      numStrings = 6,
                                                      onFretClick,
@@ -56,6 +58,18 @@ export const Fretboard = memo(function Fretboard({
             aria-label="Fretboard"
             style={{ overflow: "visible" }}
         >
+            {positionRange && (
+                <rect
+                    x={fretXPosition(positionRange.minFret) - FRET_WIDTH / 2}
+                    y={MARGIN - 10}
+                    width={fretXPosition(positionRange.maxFret) - fretXPosition(positionRange.minFret) + FRET_WIDTH}
+                    height={height - MARGIN * 2 + 20}
+                    fill="var(--active-color)"
+                    opacity={0.06}
+                    rx={8}
+                />
+            )}
+
             <StaticFretboard
                 numFrets={numFrets}
                 numStrings={numStrings}
