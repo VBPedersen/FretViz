@@ -17,7 +17,8 @@ export function SongsPage() {
 		setSongs(all);
 	}
 
-	useEffect(() => {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only run once on mount of page
+		useEffect(() => {
 		refresh();
 	}, []);
 
@@ -62,6 +63,7 @@ export function SongsPage() {
 							className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3 hover:border-neutral-700"
 						>
 							<button
+								type={"button"}
 								onClick={() => navigate(`/player/${song.id}`)}
 								className="text-left flex-1"
 							>
@@ -71,6 +73,7 @@ export function SongsPage() {
 								</div>
 							</button>
 							<button
+								type={"button"}
 								onClick={() => handleDelete(song.id)}
 								className="text-xs text-neutral-500 hover:text-red-400 ml-4"
 							>

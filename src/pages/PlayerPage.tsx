@@ -112,6 +112,7 @@ export function PlayerPage() {
 		onBarChange,
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Must ignore loadfile as dependency to avoid continuous re-render
 	useEffect(() => {
 		if (!songId) return;
 		getTab(songId).then((entry) => {

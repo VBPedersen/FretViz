@@ -19,6 +19,7 @@ export function VisualizerModePicker({
 		<div className="flex rounded bg-neutral-800 p-0.5">
 			{MODES.map((m) => (
 				<button
+					type={"button"}
 					key={m.value}
 					onClick={() => onChange(m.value)}
 					className={`px-3 py-1 text-sm rounded ${

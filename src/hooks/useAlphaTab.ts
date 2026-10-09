@@ -80,6 +80,7 @@ export function useAlphaTab(
 		onScoreLoadedRef.current = onScoreLoaded;
 	}, [onScoreLoaded]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <Collect Bar notes not as dependency since updated every render>
 	useEffect(() => {
 		if (!containerRef.current) return;
 

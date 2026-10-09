@@ -57,6 +57,7 @@ export function TrackSidebar({
 								<span className="truncate">{t.name}</span>
 								<div className="flex gap-1 shrink-0">
 									<button
+										type={"button"}
 										onClick={(e) => {
 											e.stopPropagation();
 											onMuteToggle(t.index);
@@ -66,6 +67,7 @@ export function TrackSidebar({
 										Mute
 									</button>
 									<button
+										type={"button"}
 										onClick={(e) => {
 											e.stopPropagation();
 											onSoloToggle(t.index);

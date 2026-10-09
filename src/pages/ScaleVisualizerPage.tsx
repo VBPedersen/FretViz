@@ -58,10 +58,11 @@ export function ScaleVisualizerPage() {
 				tuning.notes,
 			);
 		return groupDotsByPosition(allDots);
-	}, [mode, allDots, chordTonic, chordSymbol]);
+	}, [mode, allDots, chordTonic, chordSymbol, tuning.notes]);
 
 	// reset to position 0 whenever the underlying note set changes,
 	// otherwise positionIndex can point past the end of a shorter list
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Point is to react to alldots change
 	useEffect(() => setPositionIndex(0), [allDots]);
 
 	const dots = positions[positionIndex] ?? [];
@@ -120,6 +121,7 @@ export function ScaleVisualizerPage() {
 				{mode !== "scale" && (
 					<>
 						<button
+							type={"button"}
 							onClick={() => setShowAll((v) => !v)}
 							className={`px-3 py-1 text-sm rounded ${showAll ? "bg-pink-600 text-white" : "bg-neutral-800 text-neutral-400"}`}
 						>
@@ -136,7 +138,7 @@ export function ScaleVisualizerPage() {
 				)}
 			</header>
 			<section className="rounded-lg border border-neutral-800 bg-neutral-950 p-4">
-				{mode == "scale" ? (
+				{mode === "scale" ? (
 					<Fretboard passiveNotes={dots} activeNotes={[]} numFrets={numFrets} />
 				) : (
 					// <Fretboard passiveNotes={dots} activeNotes={[]} numFrets={numFrets} positionRange={positionRange} />

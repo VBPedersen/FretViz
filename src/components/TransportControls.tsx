@@ -35,6 +35,7 @@ export function TransportControls({
 	return (
 		<div className="flex items-center gap-4">
 			<button
+				type={"button"}
 				onClick={onPlayPause}
 				disabled={!isReady}
 				className="rounded-md bg-pink-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-pink-500 disabled:opacity-40"
@@ -42,6 +43,7 @@ export function TransportControls({
 				{isPlaying ? "Pause" : "Play"}
 			</button>
 			<button
+				type={"button"}
 				onClick={onStop}
 				disabled={!isReady}
 				className="rounded-md bg-neutral-800 px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-700 disabled:opacity-40"
@@ -59,6 +61,7 @@ export function TransportControls({
 				}}
 			>
 				<button
+					type={"button"}
 					onClick={() => onSpeedChange(clampSpeed(speed - SPEED_STEP))}
 					className="px-2 rounded bg-neutral-800 hover:bg-neutral-700"
 				>
@@ -74,6 +77,7 @@ export function TransportControls({
 					className="w-16 rounded bg-neutral-800 px-2 py-1 text-center text-neutral-100 [&::-webkit-inner-spin-button]:appearance-none"
 				/>
 				<button
+					type={"button"}
 					onClick={() => onSpeedChange(clampSpeed(speed + SPEED_STEP))}
 					className="px-2 rounded bg-neutral-800 hover:bg-neutral-700"
 				>
