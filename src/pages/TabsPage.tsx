@@ -1,6 +1,3 @@
-
 export function TabsPage() {
-    return (
-        <div></div>
-    );
+	return <div></div>;
 }
