@@ -14,6 +14,8 @@ import {FretboardOptionsPicker} from "../components/FretboardOptionsPicker.tsx";
 import {VisualizerModePicker} from "../components/VisualizerModePicker.tsx";
 import {ChordPicker} from "../components/ChordPicker.tsx";
 import {PositionPicker} from "../components/PositionPicker.tsx";
+import {TuningPicker} from "../components/TuningPicker.tsx";
+import {TUNING_PRESETS, TuningPreset} from "../lib/tunings.ts";
 
 
 type VisualizerMode = "scale" | "triad" | "chord";
@@ -25,6 +27,9 @@ type VisualizerMode = "scale" | "triad" | "chord";
 export function ScaleVisualizerPage() {
     const [mode, setMode] = useState<VisualizerMode>("scale");
     const [scale, setScale] = useState<ScaleDefinition>({ tonic: "A", scaleName: "minor pentatonic" });
+    const [tuning, setTuning] = useState<TuningPreset>( // finds "Standard" tuning, else select first in preset array
+        () => TUNING_PRESETS.find((t) => t.name === "Standard") ?? TUNING_PRESETS[0]
+    );
     const [chordTonic, setChordTonic] = useState("A");
     const [chordSymbol, setChordSymbol] = useState("M");
     const [numFrets, setNumFrets] = useState(15);
@@ -32,14 +37,14 @@ export function ScaleVisualizerPage() {
     const [showAll, setShowAll] = useState(false);
 
     const allDots = useMemo(() => {
-        if (mode === "scale") return buildScaleMap(scale);
-        return buildChordMap({ tonic: chordTonic, symbol: chordSymbol });
-    }, [mode, scale, chordTonic, chordSymbol]);
+        if (mode === "scale") return buildScaleMap(scale, tuning.notes);
+        return buildChordMap({ tonic: chordTonic, symbol: chordSymbol }, tuning.notes);
+    }, [mode, scale, chordTonic, chordSymbol, tuning]);
 
     // only chord/triad modes get split into positions.
     const positions = useMemo(() => {
         if (mode === "scale") return [allDots];
-        if (mode === "triad") return buildTriadShapes({ tonic: chordTonic, symbol: chordSymbol });
+        if (mode === "triad") return buildTriadShapes({ tonic: chordTonic, symbol: chordSymbol }, tuning.notes);
         return groupDotsByPosition(allDots);
     }, [mode, allDots, chordTonic, chordSymbol]);
 
@@ -69,6 +74,13 @@ export function ScaleVisualizerPage() {
         if (next === "chord") setChordSymbol(COMMON_CHORDS[0]);
     }
 
+    const handleTuningChange = (name: string) => {
+        const selected = TUNING_PRESETS.find((t) => t.name === name);
+        if (selected) {
+            setTuning(selected);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-4 p-4">
             <header className="flex items-center gap-6 border-b border-neutral-800 pb-3 flex-wrap">
@@ -85,6 +97,8 @@ export function ScaleVisualizerPage() {
                         onChange={(t, s) => { setChordTonic(t); setChordSymbol(s); }}
                     />
                 )}
+
+                <TuningPicker tuning={tuning.name} onChange={handleTuningChange}/>
 
                 <FretboardOptionsPicker numFrets={numFrets} onNumFretChange={setNumFrets} />
 
